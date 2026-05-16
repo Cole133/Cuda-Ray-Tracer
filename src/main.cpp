@@ -21,6 +21,7 @@ int main(){
             int ib = int(255.999 * b);
 
             std::cout << ir << ' ' << ig << ' ' << ib << '\n';
+            
         }
     }
 }
