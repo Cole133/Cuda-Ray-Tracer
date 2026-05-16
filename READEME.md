@@ -1,0 +1,1 @@
+A path tracer in C++ with CUDA acceleration, following Peter Shirley's Ray Tracing in One Weekend series.
