@@ -19,3 +19,6 @@ Time: ~1h
 - Added rtweekend.h as an umbrella header (constants like pi/infinity, shared usings, common includes)
 - Got two spheres in the world (small one + big "ground" sphere) with the normal-as-color visualization
 - Added a Makefile so `make` builds, renders to the next render#.ppm, and opens it
+
+## Week 1, Day 4 - May 19, 2026
+- Worked through chapter 7 - Added diffuse materials + shading
