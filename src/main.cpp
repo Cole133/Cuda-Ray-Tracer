@@ -13,7 +13,7 @@ color ray_color(const ray& r, const hittable& world) {
 
     vec3 unit_direction = unit_vector(r.direction());
     auto a = 0.5*(unit_direction.y() + 1);
-    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(1, 0.3, 0.0);
+    return (1.0-a)*color(0.0, 0.3, 0.6) + a*color(0.9, 0.6, 0.3);
 }
 
 int main(){
