@@ -21,4 +21,8 @@ Time: ~1h
 - Added a Makefile so `make` builds, renders to the next render#.ppm, and opens it
 
 ## Week 1, Day 4 - May 19, 2026
-- Worked through chapter 7 - Added diffuse materials + shading
+- Worked through chapter 7 - Added camera class and refactored main around it
+
+## Week 1, Day 5 - May 20, 2026
+- Went back to chapter 6 and implemented interviel class
+- Worked on chapter 8 adding antialiasing
