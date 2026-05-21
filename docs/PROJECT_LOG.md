@@ -26,3 +26,9 @@ Time: ~1h
 ## Week 1, Day 5 - May 20, 2026
 - Went back to chapter 6 and implemented interviel class
 - Worked on chapter 8 adding antialiasing
+
+## Week 1, Day 6 - May 21, 2026
+ - Added a new material class
+ - Added diffuse materials such as a matte material
+ - Added a metal material that reflects rays off of it
+ - Updated makefile to convert images to PNG

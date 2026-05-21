@@ -19,8 +19,12 @@ run: compile
 	 NEXT=$$((N + 1)); \
 	 if [ $$NEXT -lt 4 ]; then NEXT=4; fi; \
 	 OUT=$(OUTPUT_DIR)/render$$NEXT.ppm; \
+	 PNG=$${OUT%.ppm}.png; \
 	 echo "Rendering to $$OUT"; \
-	 $(BIN) > $$OUT && xdg-open $$OUT
+	 $(BIN) > $$OUT \
+	   && ffmpeg -y -loglevel error -i $$OUT $$PNG \
+	   && echo "Converted to $$PNG" \
+	   && xdg-open $$PNG
 
 clean:
 	rm -rf $(BUILD_DIR)
