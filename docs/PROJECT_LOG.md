@@ -32,3 +32,8 @@ Time: ~1h
  - Added diffuse materials such as a matte material
  - Added a metal material that reflects rays off of it
  - Updated makefile to convert images to PNG
+
+## Week 2, Day 7 - May 30, 2026
+ - Added adjustable camera class
+ - Added depth of field
+ - Finished final render

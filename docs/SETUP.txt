@@ -1,0 +1,207 @@
+===========================================
+  Cuda Ray Tracing -- New PC Setup (Windows)
+===========================================
+
+What this project actually is right now
+---------------------------------------
+A pure C++17 path tracer following Peter Shirley's "Ray Tracing in One
+Weekend". Despite the project name, there is NO CUDA code yet -- the
+source only uses the C++ standard library (<cmath>, <iostream>,
+<memory>, <random>, <limits>). CUDA acceleration is planned but not
+implemented, so you do NOT need the CUDA toolkit just to build and run
+what exists today.
+
+Build needs: a C++17 compiler + CMake. The Makefile additionally shells
+out to `ffmpeg` (PPM -> PNG conversion) and `xdg-open` (to open the
+result), which only exist on Linux. On Windows you have two realistic
+options:
+
+  OPTION A (RECOMMENDED): Build inside WSL2 (Ubuntu).
+      The existing Makefile works as-is, the dev experience matches
+      what you have now, and you can edit from VS Code on Windows via
+      the WSL extension.
+
+  OPTION B: Build natively on Windows with Visual Studio + CMake.
+      The C++ source compiles fine, but the Makefile does NOT (it
+      relies on sh, sed, xdg-open, etc.). You drive CMake directly and
+      handle the render output manually.
+
+Pick one. Option A is the path of least friction; Option B is cleaner
+if you don't want WSL on the new machine.
+
+
+============================================================
+  OPTION A -- WSL2 + Ubuntu (recommended, zero code changes)
+============================================================
+
+1. Enable WSL2 (one time, in an Admin PowerShell):
+
+       wsl --install -d Ubuntu
+
+   Reboot when it asks. After reboot, finish the Ubuntu first-run
+   prompts (create a username / password).
+
+2. Inside the Ubuntu terminal, install the toolchain:
+
+       sudo apt update
+       sudo apt install build-essential cmake make g++ ffmpeg \
+                        xdg-utils git
+
+   What each one is for:
+     build-essential ... gcc/g++, libc headers, make, etc.
+     g++             ... C++17 compiler (any g++ >= 7 works)
+     cmake           ... CMakeLists.txt requires >= 3.15
+     make            ... the top-level Makefile is GNU make
+     ffmpeg          ... Makefile converts .ppm -> .png via ffmpeg
+     xdg-utils       ... provides xdg-open, used to open the PNG
+     git             ... to clone the repo
+
+3. Clone the project somewhere inside the WSL filesystem (NOT under
+   /mnt/c -- builds there are slow):
+
+       cd ~
+       git clone <your-remote-or-copy-the-folder> cuda-ray-tracing
+       cd cuda-ray-tracing
+       make
+
+   That's it. `make` will configure, build, render, convert to PNG,
+   and open the result.
+
+4. Editing from Windows: install "WSL" extension in VS Code, then
+   from the Ubuntu shell run `code .` inside the project folder. VS
+   Code will reopen connected to WSL with full IntelliSense.
+
+   Recommended VS Code extensions (install in the WSL profile):
+     - C/C++ (ms-vscode.cpptools)
+     - CMake Tools (ms-vscode.cmake-tools)
+     - WSL (ms-vscode-remote.remote-wsl)
+
+5. To view rendered PNGs: `xdg-open` will use the default Linux image
+   viewer, which in WSL hands off to a Windows app (works out of the
+   box on Windows 11 / recent Windows 10). If it doesn't open, just
+   browse to \\wsl$\Ubuntu\home\<you>\cuda-ray-tracing\output\ from
+   Windows Explorer.
+
+
+===========================================================
+  OPTION B -- Native Windows (Visual Studio + CMake)
+===========================================================
+
+Use this if you don't want WSL. The C++ code compiles cleanly with
+MSVC; the Makefile won't, so you'll drive CMake yourself.
+
+1. Install the toolchain. Easiest is to grab everything via winget
+   from a PowerShell prompt:
+
+       winget install Microsoft.VisualStudio.2022.Community
+       winget install Kitware.CMake
+       winget install Git.Git
+       winget install Gyan.FFmpeg
+
+   When the Visual Studio installer opens, check the workload
+   "Desktop development with C++". That gives you MSVC, the Windows
+   SDK, and the CMake integration.
+
+   Alternatives:
+     - Visual Studio Build Tools only (no IDE) if you just want the
+       compiler: winget install Microsoft.VisualStudio.2022.BuildTools
+     - LLVM/Clang for Windows works too:
+       winget install LLVM.LLVM
+
+2. Make sure these are on your PATH (winget usually handles this,
+   but verify in a fresh PowerShell):
+
+       cmake --version
+       git --version
+       ffmpeg -version
+
+   Open a new PowerShell after install so PATH refreshes.
+
+3. Clone and build. From PowerShell or "x64 Native Tools Command
+   Prompt for VS 2022":
+
+       git clone <your-remote-or-copy-the-folder>
+       cd "Cuda Ray Tracing"
+       cmake -B build
+       cmake --build build --config Release
+
+   The binary lands at one of:
+       build\Release\CudaRayTracing.exe       (MSVC multi-config)
+       build\CudaRayTracing.exe               (single-config generators)
+
+4. Render. The program writes the PPM to stdout, so redirect:
+
+       mkdir output
+       build\Release\CudaRayTracing.exe > output\render.ppm
+       ffmpeg -y -i output\render.ppm output\render.png
+       start output\render.png
+
+   (Or just open output\render.ppm directly in IrfanView / GIMP,
+   both of which read PPM natively.)
+
+5. IDE option: instead of the command-line dance, open the project
+   folder directly in Visual Studio ("Open a local folder"). VS
+   detects CMakeLists.txt and gives you a Build/Run button. You can
+   set command-line redirection of stdout via the Launch settings
+   if you want F5 to render straight to a file.
+
+
+Optional: CUDA toolkit (only when you start adding GPU code)
+------------------------------------------------------------
+Not needed today. When you do start porting kernels to CUDA you will
+want, on either option:
+
+  - An NVIDIA GPU + the latest NVIDIA Game Ready or Studio driver
+    (install on Windows; WSL2 forwards the GPU automatically).
+  - The CUDA Toolkit:
+      Native Windows: download the installer from
+        https://developer.nvidia.com/cuda-downloads
+      WSL2: `sudo apt install nvidia-cuda-toolkit` OR follow NVIDIA's
+        "CUDA on WSL" guide (do NOT install a Linux NVIDIA driver
+        inside WSL -- the Windows driver provides the GPU).
+  - CMakeLists.txt will need updating to enable the CUDA language
+    (project(... CXX CUDA)) and to compile .cu files.
+
+
+Project layout (for reference)
+------------------------------
+  CMakeLists.txt       top-level CMake config (C++17, include/ on
+                       the include path)
+  Makefile             Linux-only convenience wrapper around cmake +
+                       render pipeline (works in WSL, not in cmd
+                       /PowerShell)
+  src/main.cpp         scene setup + entry point
+  include/*.h          ray-tracing headers (camera, hittable,
+                       material, sphere, vec3, ray, color, interval,
+                       rtweekend)
+  scenes/              (empty for now)
+  output/              rendered .ppm / .png files (gitignored)
+  build/               CMake build tree (gitignored)
+  docs/                project notes + this file
+
+
+Things that are gitignored (won't come over with `git clone`)
+-------------------------------------------------------------
+  build/    -- regenerated by `cmake -B build` or `make compile`
+  output/   -- recreated when you render
+  .claude/  -- per-machine Claude Code settings
+  *.ppm, *.png -- render artifacts
+
+
+Quick sanity check on the new machine
+-------------------------------------
+WSL2 (Option A), inside Ubuntu:
+
+    g++ --version          # >= 7
+    cmake --version        # >= 3.15
+    ffmpeg -version
+    make                   # should build and pop a PNG
+
+Native Windows (Option B), in PowerShell:
+
+    cmake --version        # >= 3.15
+    where cl               # MSVC compiler should be found in a
+                           # "x64 Native Tools" prompt, or once VS
+                           # is installed and PATH is set
+    ffmpeg -version
+    cmake -B build && cmake --build build --config Release
