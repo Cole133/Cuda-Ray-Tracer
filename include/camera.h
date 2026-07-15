@@ -11,8 +11,7 @@ class camera {
         int samples_per_pixel = 10;
         int max_depth = 10;
 
-        // When true, render() skips all image/progress output so only the
-        // raytracing work is measured during benchmarking.
+        // When true only raytracing work is measured during benchmarking.
         bool benchmark_mode = false;
 
         double vfov = 90;
@@ -51,12 +50,10 @@ class camera {
                 std::clog << "\rDone.                 \n";
         }
 
-        // Total rays traced during the most recent render() call, including
-        // camera rays and every scattered/bounce ray. Reset at render() start.
+        // Total rays traced during the most recent render() call
         long long ray_count() const { return rays_cast; }
 
-        // Image height (in pixels) computed from image_width / aspect_ratio.
-        // Only valid after render()/initialize() has run.
+        // Image height computed from image_width / aspect_ratio
         int image_height_value() const { return image_height; }
     
     private:
@@ -129,8 +126,7 @@ class camera {
             if (depth <= 0)
                 return color(0,0,0);
 
-            // Count only rays that are actually traced against the scene
-            // (the depth-limit early-out above never touches world.hit).
+            // Count only rays that are traced against the scene
             ++rays_cast;
 
             hit_record rec;
