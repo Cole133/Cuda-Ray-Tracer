@@ -37,3 +37,8 @@ Time: ~1h
  - Added adjustable camera class
  - Added depth of field
  - Finished final render
+
+ ## Week 3, Day 8 - July 13, 2026
+  - Coming back from a monthish off from travel sickness and lost interest
+  - Made sure repo still builds fine all is good
+  - Everything works well.
