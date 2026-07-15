@@ -5,6 +5,7 @@
 
 scene make_book1_final(int image_width, int samples_per_pixel){
     scene s;
+    s.name = "book1_final";
 
     auto ground_mat = make_shared<lambertian>(color(0.5,0.5,0.5));
     s.world.add(make_shared<sphere>(point3(0,-1000,0), 1000, ground_mat));
