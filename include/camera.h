@@ -11,6 +11,10 @@ class camera {
         int samples_per_pixel = 10;
         int max_depth = 10;
 
+        // When true, render() skips all image/progress output so only the
+        // raytracing work is measured during benchmarking.
+        bool benchmark_mode = false;
+
         double vfov = 90;
         point3 lookfrom = point3(0,0,0);
         point3 lookat = point3(0,0,-1);
@@ -22,11 +26,14 @@ class camera {
 
         void render(const hittable& world) {
             initialize();
+            rays_cast = 0;
 
-            std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+            if (!benchmark_mode)
+                std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
             for (int j = 0; j < image_height; j++){
-                std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+                if (!benchmark_mode)
+                    std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
                 for (int i = 0; i < image_width; i++){
                     color pixel_color(0,0,0);
 
@@ -35,15 +42,26 @@ class camera {
                         pixel_color += ray_color(r, max_depth, world);
                     }
 
-                    write_color(std::cout, pixel_samples_scale * pixel_color);
+                    if (!benchmark_mode)
+                        write_color(std::cout, pixel_samples_scale * pixel_color);
                 }
             }
 
-            std::clog << "\rDone.                 \n";
+            if (!benchmark_mode)
+                std::clog << "\rDone.                 \n";
         }
+
+        // Total rays traced during the most recent render() call, including
+        // camera rays and every scattered/bounce ray. Reset at render() start.
+        long long ray_count() const { return rays_cast; }
+
+        // Image height (in pixels) computed from image_width / aspect_ratio.
+        // Only valid after render()/initialize() has run.
+        int image_height_value() const { return image_height; }
     
     private:
         int image_height;
+        mutable long long rays_cast = 0;
         double pixel_samples_scale;
         point3 center;
         point3 pixel00_loc;
@@ -110,6 +128,10 @@ class camera {
             // If we've exceeded the ray bounce limit, no more light is gathered.
             if (depth <= 0)
                 return color(0,0,0);
+
+            // Count only rays that are actually traced against the scene
+            // (the depth-limit early-out above never touches world.hit).
+            ++rays_cast;
 
             hit_record rec;
 
