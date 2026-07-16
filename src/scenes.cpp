@@ -50,8 +50,8 @@ scene make_book1_final(int image_width, int samples_per_pixel){
     s.world.add(make_shared<sphere>(point3(4,1,0), 1.0, material3));
 
     s.cam.aspect_ratio = 16.0 / 9.0;
-    s.cam.image_width = 400;
-    s.cam.samples_per_pixel = 100;
+    s.cam.image_width = image_width;
+    s.cam.samples_per_pixel = samples_per_pixel;
     s.cam.max_depth = 50;
 
     s.cam.vfov = 20;
