@@ -10,7 +10,7 @@
 
 namespace {
 
-// Returns the current local time as "YYYY-MM-DD HH:MM:SS".
+// Returns time as "YYYY-MM-DD HH:MM:SS"
 std::string timestamp() {
     std::time_t t = std::time(nullptr);
     std::tm tm_buf{};
@@ -24,8 +24,7 @@ std::string timestamp() {
     return buf;
 }
 
-// Returns the short hash of the current git commit, or "unknown" if git is
-// unavailable or this isn't a git checkout.
+// Returns the current git commit
 std::string git_commit() {
 #ifdef _WIN32
     FILE* pipe = _popen("git rev-parse --short HEAD 2>NUL", "r");
@@ -44,30 +43,26 @@ std::string git_commit() {
     pclose(pipe);
 #endif
 
-    // Strip trailing newline / carriage return / spaces.
     while (!out.empty() && (out.back() == '\n' || out.back() == '\r' || out.back() == ' '))
         out.pop_back();
 
     return out.empty() ? "unknown" : out;
 }
 
-// True if a file already exists at `path` (used to decide on the CSV header).
 bool file_exists(const std::string& path) {
     std::ifstream f(path);
     return f.good();
 }
 
-} // namespace
+} 
 
 void run_benchmark(scene& s, int num_trials, const std::string& csv_path) {
-    // Suppress the PPM image + progress output so we time pure raytracing work.
+    // Suppress the PPM image + progress output so only times raytracing work
     s.cam.benchmark_mode = true;
 
-    // Captured once: these describe the whole benchmark run, not a single trial.
     const std::string ts = timestamp();
     const std::string commit = git_commit();
 
-    // Append mode so results accumulate across runs; header only for a new file.
     const bool needs_header = !file_exists(csv_path);
     std::ofstream csv(csv_path, std::ios::app);
     if (needs_header) {

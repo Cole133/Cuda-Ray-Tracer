@@ -2,6 +2,7 @@
 #include "sphere.h"
 #include "material.h"
 #include "rtweekend.h"
+#include "bvh.h"
 
 scene make_book1_final(int image_width, int samples_per_pixel){
     scene s;
@@ -48,6 +49,8 @@ scene make_book1_final(int image_width, int samples_per_pixel){
 
     auto material3 = make_shared<metal>(color(0.7,0.6,0.5), 0.0);
     s.world.add(make_shared<sphere>(point3(4,1,0), 1.0, material3));
+
+    s.world = hittable_list(make_shared<bvh_node>(s.world));
 
     s.cam.aspect_ratio = 16.0 / 9.0;
     s.cam.image_width = image_width;
