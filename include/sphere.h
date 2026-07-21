@@ -2,6 +2,7 @@
 #define SPHERE_H
 
 #include "hittable.h"
+#include "stats.h"
 
 class sphere : public hittable {
     public:
@@ -22,6 +23,9 @@ class sphere : public hittable {
             }
 
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+            // Count this ray/sphere intersection attempt (whether it hits or misses).
+            g_ray_object_tests.fetch_add(1, std::memory_order_relaxed);
+
             point3 current_center = center.at(r.time());
             vec3 oc = current_center - r.origin();
             auto a = r.direction().length_squared();

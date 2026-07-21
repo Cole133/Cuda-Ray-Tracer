@@ -1,4 +1,5 @@
 #include "benchmark.h"
+#include "stats.h"
 
 #include <chrono>
 #include <cstdio>
@@ -67,20 +68,28 @@ void run_benchmark(scene& s, int num_trials, const std::string& csv_path) {
     std::ofstream csv(csv_path, std::ios::app);
     if (needs_header) {
         csv << "timestamp,git_commit,scene_name,image_width,image_height,"
-               "samples_per_pixel,trial_number,render_time_seconds,total_rays,rays_per_second\n";
+               "samples_per_pixel,trial_number,render_time_seconds,total_rays,rays_per_second,"
+               "ray_object_tests,avg_tests_per_ray\n";
     }
 
     std::clog << "Benchmarking scene '" << s.name << "' - "
               << num_trials << " trial(s)\n";
 
     for (int trial = 1; trial <= num_trials; trial++) {
+        // Reset the intersection-test counter so it reflects only this render.
+        g_ray_object_tests.store(0, std::memory_order_relaxed);
+
         const auto start = std::chrono::steady_clock::now();
         s.cam.render(s.world);
         const auto end = std::chrono::steady_clock::now();
 
+        // Capture the counter's final value for this render.
+        const uint64_t ray_object_tests = g_ray_object_tests.load(std::memory_order_relaxed);
+
         const double seconds = std::chrono::duration<double>(end - start).count();
         const long long total_rays = s.cam.ray_count();
         const double rays_per_sec = seconds > 0.0 ? total_rays / seconds : 0.0;
+        const double avg_tests_per_ray = total_rays > 0 ? double(ray_object_tests) / double(total_rays) : 0.0;
 
         const int width = s.cam.image_width;
         const int height = s.cam.image_height_value();
@@ -90,12 +99,16 @@ void run_benchmark(scene& s, int num_trials, const std::string& csv_path) {
             << width << ',' << height << ',' << spp << ',' << trial << ','
             << std::fixed << std::setprecision(6) << seconds << ','
             << total_rays << ','
-            << std::setprecision(2) << rays_per_sec << '\n';
+            << std::setprecision(2) << rays_per_sec << ','
+            << ray_object_tests << ','
+            << std::setprecision(4) << avg_tests_per_ray << '\n';
 
         std::clog << "  trial " << trial << '/' << num_trials << ": "
                   << std::fixed << std::setprecision(3) << seconds << " s, "
                   << total_rays << " rays, "
-                  << std::setprecision(0) << rays_per_sec << " rays/s\n";
+                  << std::setprecision(0) << rays_per_sec << " rays/s, "
+                  << ray_object_tests << " obj-tests, "
+                  << std::setprecision(2) << avg_tests_per_ray << " tests/ray\n";
     }
 
     std::clog << "Wrote results to " << csv_path << "\n";
